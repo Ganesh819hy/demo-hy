@@ -982,45 +982,56 @@
             }
         </script>"
 ".        <script>
-            /* Mola reveal engine v2, fade/slide reveals (NO blur) replacing the
-               Webflow IX2 reveals that no longer fire. Bulletproof: a safety net forces
-               any element still hidden to show, so text/images never stay invisible. */
+        <script>
+            /* Lumora high-performance reveal engine (IntersectionObserver + GPU acceleration) */
             (function () {
                 function runReveals() {
-                    if (!window.gsap) return;
-                    var hasST = !!window.ScrollTrigger;
-                    if (hasST) gsap.registerPlugin(ScrollTrigger);
-                    var els = gsap.utils.toArray('[data-w-id]').filter(function (el) {
+                    var els = Array.from(document.querySelectorAll('[data-w-id]')).filter(function (el) {
                         var s = el.getAttribute('style') || '';
                         if (s.indexOf('opacity:0') === -1) return false;
                         if (el.closest('.navbar_wrap') || el.closest('.w-nav') || el.closest('.w-dropdown-list')) return false;
                         return true;
                     });
-                    els.forEach(function (el) {
-                        gsap.set(el, { clearProps: 'transform,filter' });
-                        gsap.fromTo(el,
-                            { opacity: 0, y: 40 },
-                            {
-                                opacity: 1, y: 0, duration: 0.9, ease: 'power2.out',
-                                scrollTrigger: hasST ? { trigger: el, start: 'top 97%', once: true } : undefined
-                            }
-                        );
-                    });
-                    if (hasST) {
-                        window.addEventListener('load', function () { ScrollTrigger.refresh(); });
-                        ScrollTrigger.refresh();
+                    if ('IntersectionObserver' in window) {
+                        var obs = new IntersectionObserver(function (entries) {
+                            entries.forEach(function (e) {
+                                if (e.isIntersecting) {
+                                    var target = e.target;
+                                    obs.unobserve(target);
+                                    if (window.gsap) {
+                                        gsap.fromTo(target, 
+                                            { opacity: 0, y: 30 }, 
+                                            { opacity: 1, y: 0, duration: 0.65, ease: 'power2.out', clearProps: 'transform,filter' }
+                                        );
+                                    } else {
+                                        target.style.opacity = '1';
+                                        target.style.transform = 'none';
+                                    }
+                                }
+                            });
+                        }, { threshold: 0.05, rootMargin: '0px 0px -30px 0px' });
+                        els.forEach(function (el) { obs.observe(el); });
+                    } else if (window.gsap) {
+                        var hasST = !!window.ScrollTrigger;
+                        if (hasST) gsap.registerPlugin(ScrollTrigger);
+                        els.forEach(function (el) {
+                            gsap.fromTo(el, { opacity: 0, y: 30 }, {
+                                opacity: 1, y: 0, duration: 0.65, ease: 'power2.out', clearProps: 'transform,filter',
+                                scrollTrigger: hasST ? { trigger: el, start: 'top 95%', once: true } : undefined
+                            });
+                        });
                     }
-                    /* Safety net: after a beat, force anything still invisible to show */
                     setTimeout(function () {
                         els.forEach(function (el) {
                             if (parseFloat(getComputedStyle(el).opacity) === 0) {
-                                gsap.set(el, { opacity: 1, y: 0, clearProps: 'transform,filter' });
+                                el.style.opacity = '1';
+                                el.style.transform = 'none';
                             }
                         });
-                    }, 2600);
+                    }, 2000);
                 }
-                if (document.readyState !== 'loading') setTimeout(runReveals, 150);
-                else document.addEventListener('DOMContentLoaded', function () { setTimeout(runReveals, 150); });
+                if (document.readyState !== 'loading') setTimeout(runReveals, 100);
+                else document.addEventListener('DOMContentLoaded', function () { setTimeout(runReveals, 100); });
             })();
         </script>
 

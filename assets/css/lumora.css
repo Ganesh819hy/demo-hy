@@ -4740,7 +4740,7 @@ figure {
   background-image: url("../img/69ddd539a343355970d2be89_testimonial-background.webp");
   background-position: 50% 100%;
   background-size: cover;
-  background-attachment: fixed;
+  background-attachment: scroll;
 }
 
 .testimonial_block {
@@ -9126,3 +9126,36 @@ footer{border-top:3px solid var(--primitive-color--primary-500,#24a3b1);}
 
 /* Safety: reveal/portrait/blog images must never stay blurred (no leftover IX2 blur) */
 .team_image,.blog-item_image,.our-story_image,.about-hero_image,.home-value_image{filter:none !important;-webkit-filter:none !important;}
+
+/* ===== 60FPS ANIMATION & SCROLL PERFORMANCE OPTIMIZATIONS ===== */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Eliminate expensive background-attachment: fixed repaints */
+.section_testimonial.is-home, .section_team {
+  background-attachment: scroll !important;
+}
+
+/* Hardware GPU acceleration for animated elements and images */
+[data-w-id], .hero-image_wrap, .home-hero_image, .w-slide, .navbar_wrap, .our-info_item, .button_primary, .hero_overlay, .job_overlay, .more-service_overlay, .hero_gradient, .hero-carousel-img {
+  will-change: transform, opacity;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+/* Optimize heavy blur filters for high FPS compositing */
+.hero_gradient {
+  filter: blur(30px) !important;
+  -webkit-filter: blur(30px) !important;
+}
+.job_overlay, .more-service_overlay {
+  filter: blur(35px) !important;
+  -webkit-filter: blur(35px) !important;
+}
+.navbar_wrap, .navbar-dropdown_wrapper {
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+}
+
